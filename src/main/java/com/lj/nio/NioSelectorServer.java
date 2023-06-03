@@ -1,5 +1,7 @@
 package com.lj.nio;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -10,6 +12,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+@Slf4j
 public class NioSelectorServer {
 
     public static void main(String[] args) throws IOException {
@@ -23,7 +26,7 @@ public class NioSelectorServer {
         Selector selector = Selector.open();
         // 把ServerSocketChannel注册到selector上，并且selector对客户端accept连接操作感兴趣
         SelectionKey selectionKey = serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-        System.out.println("服务启动成功");
+        log.info("服务启动成功");
 
         while (true) {
             // 阻塞等待需要处理的事件发生
@@ -43,16 +46,16 @@ public class NioSelectorServer {
                     socketChannel.configureBlocking(false);
                     // 这里只注册了读事件，如果需要给客户端发送数据可以注册写事件
                     SelectionKey selKey = socketChannel.register(selector, SelectionKey.OP_READ);
-                    System.out.println("客户端连接成功");
+                    log.info("客户端连接成功");
                 } else if (key.isReadable()) {  // 如果是OP_READ事件，则进行读取和打印
                     SocketChannel socketChannel = (SocketChannel) key.channel();
                     ByteBuffer byteBuffer = ByteBuffer.allocateDirect(128);
                     int len = socketChannel.read(byteBuffer);
                     // 如果有数据，把数据打印出来
                     if (len > 0) {
-                        System.out.println("接收到消息：" + new String(byteBuffer.array()));
+                        log.info("接收到消息:{}", new String(byteBuffer.array()));
                     } else if (len == -1) { // 如果客户端断开连接，关闭Socket
-                        System.out.println("客户端断开连接");
+                        log.info("客户端断开连接");
                         socketChannel.close();
                     }
                 }
